@@ -1,0 +1,38 @@
+---
+- name: Growth Yield Batch Processing Environment
+  hosts: all
+  user: vagrant
+  become: yes
+  become_method: sudo
+  vars_files:
+    - group_vars/all
+  vars:
+    fvs_variants:
+#      - ak
+#      - bcc
+#      - bmc
+#      - cac
+#      - cic
+#      - crc
+#      - cs
+#      - ecc
+#      - emc
+#      - iec
+#      - ktc
+#      - ls
+#      - ncc
+#      - ne
+#      - oc
+#      - op
+#      - pnc
+#      - soc
+      - sn
+#      - ttc
+#      - utc
+#      - wcc
+#      - wsc
+
+  roles:
+    - common
+    - fvs
+#    - gybatch

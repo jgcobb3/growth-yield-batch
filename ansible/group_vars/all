@@ -1,0 +1,3 @@
+---
+#key: "{{ lookup('ini', 'key section=default file=../../.env') }}"
+update_apt_cache: yes

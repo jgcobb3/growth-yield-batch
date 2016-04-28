@@ -1,0 +1,65 @@
+---
+# open-fvs: Forest Vegetation Simulator (FVS) forest growth model
+# https://sourceforge.net/p/open-fvs/wiki/BuildProcess_UnixAlike/
+
+- name: install fvs dependencies
+  apt: name={{ item }} update_cache=yes force=yes state=latest
+  with_items:
+    - gfortran
+    - cmake
+    - unixodbc-dev
+    - build-essential
+    - subversion
+
+- name: checkout fvs source
+  subversion:
+    repo=https://svn.code.sf.net/p/open-fvs/code
+    dest=/usr/local/src/open-fvs
+    force=yes
+
+- name: fix filename case
+  shell: '[ -f {{ item.old }} ] | cp -fs {{ item.old }} {{ item.new }}'
+  args:
+    chdir: /usr/local/src/open-fvs/trunk/volume/src
+  with_items:
+    - { old: 'R8CLIST.INC', new: 'r8clist.inc'}
+    - { old: 'R8VLIST.INC', new: 'R8VLIST.inc'}
+
+- name: set compiler optimizations
+  lineinfile:
+    dest=/usr/local/src/open-fvs/trunk/bin/makefile
+    regexp='^export FFLAGS = .*$'
+    line='export FFLAGS = $(PIC) -g -Wall -ffpe-trap=invalid,zero -O2'
+    state=present
+
+- name: set to build all variants
+  lineinfile:
+    dest=/usr/local/src/open-fvs/trunk/bin/CMakeLists.txt
+    regexp='^file\(GLOB tobuild FVSiec_sourceList.txt\)'
+    line='file(GLOB tobuild FVS*_sourceList.txt)'
+    state=present
+
+- name: remove existing makefiles
+  shell: rm -rf /usr/local/src/open-fvs/trunk/bin/*_CmakeDir
+
+- name: build makefiles
+  shell: cmake -G"Unix Makefiles" .
+  args:
+    chdir: /usr/local/src/open-fvs/trunk/bin
+
+- name: build executable
+  shell: make
+  args:
+    chdir: /usr/local/src/open-fvs/trunk/bin/FVS{{ item }}_CmakeDir/
+    creates: FVS{{ item }}
+  with_items:
+    - '{{ fvs_variants }}'
+
+- name: link executable
+  file:
+    src=/usr/local/src/open-fvs/trunk/bin/FVS{{ item }}_CmakeDir/FVS{{ item }}
+    dest=/usr/local/bin/FVS{{ item }}
+    state=link
+  with_items:
+    - '{{ fvs_variants }}'
+

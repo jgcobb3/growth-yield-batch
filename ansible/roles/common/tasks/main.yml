@@ -1,0 +1,31 @@
+---
+- name: update apt package cache
+  apt: update_cache=yes cache_valid_time=3600
+
+- name: safely upgrade installed packages
+  apt: upgrade=safe
+
+- name: install package for automatic secuirty updates
+  apt: name=unattended-upgrades state=installed
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: ensure unattended-upgrades only installs from $ubuntu_release-security
+  lineinfile: dest=/etc/apt/apt.conf.d/50unattended-upgrades regexp="$ubuntu_release-updates" state=absent
+  when: ansible_distribution == 'Ubuntu'
+
+- name: configure automatic apt update interval
+  copy: src=../files/apt_10periodic dest=/etc/apt/apt.conf.d/10periodic
+
+- name: configure message of the day (motd)
+  copy: src=../files/landscape_client.conf dest=/etc/landscape/client.conf owner=landscape group=landscape
+
+- name: remove extra motd
+  file: path=/etc/update-motd.d/{{ item  }} state=absent
+  with_items:
+    - 51-cloudguest
+    - 10-help-text
+
+- name: install common administrative packages
+  apt: name={{ item }} update_cache={{ update_apt_cache }} force=yes state=installed
+  with_items:
+    - htop
