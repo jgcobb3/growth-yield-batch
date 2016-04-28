@@ -1,0 +1,26 @@
+[program:celerybeat]
+directory=/var/celery/
+command={{ celery_virtualenv_path }}/bin/celery beat -A celeryapp --loglevel=INFO
+stdout_logfile=/var/log/celery/beat.log
+stderr_logfile=/var/log/celery/beat.log
+autostart=true
+autorestart=true
+
+[program:celery]
+directory=/var/celery/
+command={{ celery_virtualenv_path }}/bin/celery worker -A celeryapp --loglevel=INFO
+stdout_logfile=/var/log/celery/worker.log
+stderr_logfile=/var/log/celery/worker.log
+user=celery
+autostart=true
+autorestart=true
+startsecs=10
+
+[program:flower]
+directory=/var/celery/
+command={{ celery_virtualenv_path }}/bin/flower -A celeryapp --broker_api=http://{{ celery_broker_user }}:{{ celery_broker_password }}@localhost:15672/api/ --inspect_timeout=30000
+stdout_logfile=/var/log/celery/flower.log
+stderr_logfile=/var/log/celery/flower.log
+autostart=true
+autorestart=true
+startsecs=15

@@ -1,0 +1,129 @@
+---
+- name: install packages
+  apt: name={{ item }} update_cache=yes force=yes state=latest
+  with_items:
+    - build-essential
+    - python-software-properties
+    - git-core
+    - python-jinja2
+    - nginx-full
+    - vim
+    - python-psycopg2
+    - python-virtualenv
+    - python-pip
+    - python-dev
+    - python-numpy
+    - dos2unix
+    - sqlite3
+    - unixodbc
+    - unixodbc-dev
+    - odbc-postgresql
+    - gfortran
+    - cmake
+    - subversion
+#    - redis-server
+
+
+- name: configure ODBC
+  copy:
+    src={{ item }}
+    dest=/etc/{{ item }}
+    owner=root
+    mode=0644
+  with_items:
+    - odbc.ini
+    - odbcinst.ini
+
+# NGINX
+- name: create gybatch site
+  copy:
+    src=gybatch.nginx
+    dest=/etc/nginx/sites-available/gybatch
+
+- name: enable gybatch site
+  file:
+    src=/etc/nginx/sites-available/gybatch
+    dest=/etc/nginx/sites-enabled/gybatch
+    state=link
+
+- name: remove default site
+  file:
+    path=/etc/nginx/sites-enabled/default
+    state=absent
+
+# CELERY
+- name: install celery dependencies
+  apt: name=supervisor update_cache={{ update_apt_cache }} force=yes state=installed
+  with_items:
+    - supervisor
+#    - rabbitmq-server
+
+#- name: add rabbitmq virtual host
+#  rabbitmq_vhost: name=celery state=present
+#
+#- name: enable rabbitmq_management plugin
+#  rabbitmq_plugin: names=rabbitmq_management state=enabled
+#
+#- name: add rabbitmq user
+#  rabbitmq_user: user={{ celery_broker_user }}
+#                 password={{ celery_broker_password }}
+#                 vhost=celery
+#                 tags=administrator
+#                 configure_priv=.*
+#                 read_priv=.*
+#                 write_priv=.*
+#                 state=present
+#
+#- name: remove rabbitmq guest user
+#  rabbitmq_user: user=guest
+#                 state=absent
+
+- name: install required python packages
+  pip: name={{ item }} state=latest
+  with_items:
+    - celery
+    - flower
+
+- name: create celery worker user
+  user: name=celery createhome=no system=yes state=present
+
+- name: create celery task directory
+  file: path=/var/celery owner=celery group=adm state=directory
+
+- name: link celery tasks
+  file:
+    src=/usr/local/apps/growth-yield-batch/scripts/{{ item }}
+    dest=/var/celery/{{ item }}
+    state=link
+  with_items:
+    - tasks.py
+    - run_fvs.py
+    - extract.py
+
+- name: create celery log directory
+  file: path=/var/log/celery owner=celery group=adm state=directory
+
+- name: configure celery log rotation
+  copy: src=logrotate_celery dest=/etc/logrotate.d/celery
+
+- name: create supervisory config directory
+  file: path=/etc/supervisor/conf.d state=directory mode=0755
+
+#- name: write supervisor config file
+#  template: src=supervisor_celery dest=/etc/supervisor/conf.d/celery.conf
+#  notify: restart supervisor
+
+- name: link scripts
+  file:
+    src=/usr/local/apps/growth-yield-batch/scripts/{{ item }}.py
+    dest=/usr/local/bin/{{ item }}
+    state=link
+    mode=0775
+  with_items:
+    - run_fvs
+    - batch_fvs
+    - batch_fvs_celery
+    - build_keys
+#    - status_fvs
+    #- csvs_to_sqlite
+
