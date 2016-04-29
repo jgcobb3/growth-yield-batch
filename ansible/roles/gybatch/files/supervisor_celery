@@ -1,0 +1,18 @@
+[program:celery]
+directory=/var/celery
+command=/usr/local/bin/celery worker -A tasks --loglevel=INFO
+stdout_logfile=/var/log/celery/worker.log
+stderr_logfile=/var/log/celery/worker.log
+user=celery
+autostart=true
+autorestart=true
+startsecs=10
+
+[program:flower]
+directory=/var/celery
+command=/usr/local/bin/flower -A tasks --broker=redis://localhost:6379// --inspect_timeout=30000
+stdout_logfile=/var/log/celery/flower.log
+stderr_logfile=/var/log/celery/flower.log
+autostart=true
+autorestart=true
+startsecs=15

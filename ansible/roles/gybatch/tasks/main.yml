@@ -15,14 +15,13 @@
     - python-numpy
     - dos2unix
     - sqlite3
+
     - unixodbc
     - unixodbc-dev
     - odbc-postgresql
     - gfortran
     - cmake
     - subversion
-#    - redis-server
-
 
 - name: configure ODBC
   copy:
@@ -56,27 +55,7 @@
   apt: name=supervisor update_cache={{ update_apt_cache }} force=yes state=installed
   with_items:
     - supervisor
-#    - rabbitmq-server
-
-#- name: add rabbitmq virtual host
-#  rabbitmq_vhost: name=celery state=present
-#
-#- name: enable rabbitmq_management plugin
-#  rabbitmq_plugin: names=rabbitmq_management state=enabled
-#
-#- name: add rabbitmq user
-#  rabbitmq_user: user={{ celery_broker_user }}
-#                 password={{ celery_broker_password }}
-#                 vhost=celery
-#                 tags=administrator
-#                 configure_priv=.*
-#                 read_priv=.*
-#                 write_priv=.*
-#                 state=present
-#
-#- name: remove rabbitmq guest user
-#  rabbitmq_user: user=guest
-#                 state=absent
+    - redis-server
 
 - name: install required python packages
   pip: name={{ item }} state=latest
@@ -89,6 +68,9 @@
 
 - name: create celery task directory
   file: path=/var/celery owner=celery group=adm state=directory
+
+- name: configure celery
+  copy: src=celeryconfig.py dest=/var/celery
 
 - name: link celery tasks
   file:
@@ -106,24 +88,23 @@
 - name: configure celery log rotation
   copy: src=logrotate_celery dest=/etc/logrotate.d/celery
 
-- name: create supervisory config directory
+- name: create supervisor config directory
   file: path=/etc/supervisor/conf.d state=directory mode=0755
 
-#- name: write supervisor config file
-#  template: src=supervisor_celery dest=/etc/supervisor/conf.d/celery.conf
-#  notify: restart supervisor
+- name: write supervisor config file
+  copy: src=supervisor_celery dest=/etc/supervisor/conf.d/celery.conf
 
 - name: link scripts
   file:
-    src=/usr/local/apps/growth-yield-batch/scripts/{{ item }}.py
-    dest=/usr/local/bin/{{ item }}
+    src=/usr/local/apps/growth-yield-batch/scripts/{{ item.src }}
+    dest=/usr/local/bin/{{ item.dest }}
     state=link
     mode=0775
   with_items:
-    - run_fvs
-    - batch_fvs
-    - batch_fvs_celery
-    - build_keys
-#    - status_fvs
+    - { src: 'run_fvs.py', dest: 'run_fvs' }
+    - { src: 'batch_fvs.py',  dest: 'batch_fvs' }
+    - { src: 'batch_fvs_celery.py',  dest: 'batch_fvs_celery' }
+    - { src: 'build_keys.py',  dest: 'build_keys' }
+    - { src: 'status_fvs', dest: 'status_fvs' }
     #- csvs_to_sqlite
 

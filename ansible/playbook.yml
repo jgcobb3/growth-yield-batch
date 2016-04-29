@@ -34,5 +34,5 @@
 
   roles:
     - common
-    - fvs
-#    - gybatch
+#    - fvs
+    - gybatch
