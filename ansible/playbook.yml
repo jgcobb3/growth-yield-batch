@@ -32,7 +32,10 @@
 #      - wcc
 #      - wsc
 
+    flower_user: user
+    flower_pass: password
+
   roles:
     - common
-#    - fvs
+    - fvs
     - gybatch
