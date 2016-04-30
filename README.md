@@ -42,9 +42,9 @@ Instructions assume a local Ubuntu machine.
         > cd growth-yield-batch
         > git fetch && git checkout ansible
 
-* Save Vagrantfile.template as Vagrantfile
+* Save *Vagrantfile.template* as *Vagrantfile*
 
-* Modify FVS variant selection in growth-yield-batch/ansible/playbook.yml by removing '#' comments.
+* Modify FVS variant selection in *growth-yield-batch/ansible/playbook.yml* by removing '#' comments.
 
 * Provision virtual machine, FVS binaries will be built automatically.
 
