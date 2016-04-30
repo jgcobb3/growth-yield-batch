@@ -1,3 +1,4 @@
+.idea/
 *.pyc
 lot/settings_local.py
 *.log
