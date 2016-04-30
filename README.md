@@ -24,6 +24,35 @@ not automated and there are no Linux binaries available for distribution. Follow
 * You will have to restart services with `fab dev restart_services`
 * To track status of celery tasks, visit the celery flower interface at `http://localhost:8082`
 
+#### Linux VM (alternate)
+
+Instructions assume a local Ubuntu machine.
+
+* Install dependencies
+
+        > sudo sh -c "echo 'deb http://download.virtualbox.org/virtualbox/debian '$(lsb_release -cs)' contrib non-free' > /etc/apt/sources.list.d/virtualbox.list"
+        > wget -q http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc -O- | sudo apt-key add -
+        > sudo apt-get update
+        > sudo apt-get install virtualbox-5.0 vagrant git python-pip
+        > sudo pip install 'ansible>=1.9.4'
+
+* Clone repository, and checkout ansible branch
+
+        > git clone git@github.com:jgcobb3/growth-yield-batch.git
+        > cd growth-yield-batch
+        > git fetch && git checkout ansible
+
+* Save Vagrantfile.template as Vagrantfile
+
+* Modify FVS variant selection in growth-yield-batch/ansible/playbook.yml by removing '#' comments.
+
+* Provision virtual machine, FVS binaries will be built automatically.
+
+        > vagrant up
+
+* Track status of celery tasks at <http://localhost:5555>
+
+
 #### Windows
 
 * Install these python libraries: numpy, pandas and docopt
