@@ -16,11 +16,13 @@
     repo=https://svn.code.sf.net/p/open-fvs/code
     dest=/usr/local/src/open-fvs
     force=yes
+  register: fvs_repo
 
 - name: fix filename case
   shell: '[ -f {{ item.old }} ] | cp -fs {{ item.old }} {{ item.new }}'
   args:
     chdir: /usr/local/src/open-fvs/trunk/volume/src
+  when: fvs_repo.changed
   with_items:
     - { old: 'R8CLIST.INC', new: 'r8clist.inc'}
     - { old: 'R8VLIST.INC', new: 'R8VLIST.inc'}
@@ -31,6 +33,7 @@
     regexp='^export FFLAGS = .*$'
     line='export FFLAGS = $(PIC) -g -Wall -ffpe-trap=invalid,zero -O2'
     state=present
+  when: fvs_repo.changed
 
 - name: set to build all variants
   lineinfile:
@@ -38,12 +41,15 @@
     regexp='^file\(GLOB tobuild FVSiec_sourceList.txt\)'
     line='file(GLOB tobuild FVS*_sourceList.txt)'
     state=present
+  when: fvs_repo.changed
 
 - name: remove existing makefiles
   shell: rm -rf /usr/local/src/open-fvs/trunk/bin/*_CmakeDir
+  when: fvs_repo.changed
 
 - name: build makefiles
   shell: cmake -G"Unix Makefiles" .
+  when: fvs_repo.changed
   args:
     chdir: /usr/local/src/open-fvs/trunk/bin
 
@@ -63,3 +69,11 @@
   with_items:
     - '{{ fvs_variants }}'
 
+- name: revert config files
+  shell: svn revert trunk/bin/{{ item }}
+  when: fvs_repo.changed
+  args:
+    chdir: /usr/local/src/open-fvs
+  with_items:
+    - makefile
+    - CMakeLists.txt
