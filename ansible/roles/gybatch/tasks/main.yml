@@ -73,6 +73,8 @@
 
 - name: write supervisor config file
   copy: src=supervisor_celery dest=/etc/supervisor/conf.d/celery.conf
+  notify:
+    - restart supervisor
 
 ## NGINX
 ## Running Flower behind a reverse proxy:
