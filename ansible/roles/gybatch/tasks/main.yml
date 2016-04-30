@@ -6,7 +6,6 @@
     - python-software-properties
     - git-core
     - python-jinja2
-    - nginx-full
     - vim
     - python-psycopg2
     - python-virtualenv
@@ -33,35 +32,16 @@
     - odbc.ini
     - odbcinst.ini
 
-# NGINX
-- name: create gybatch site
-  copy:
-    src=gybatch.nginx
-    dest=/etc/nginx/sites-available/gybatch
-
-- name: enable gybatch site
-  file:
-    src=/etc/nginx/sites-available/gybatch
-    dest=/etc/nginx/sites-enabled/gybatch
-    state=link
-
-- name: remove default site
-  file:
-    path=/etc/nginx/sites-enabled/default
-    state=absent
-
 # CELERY
 - name: install celery dependencies
-  apt: name=supervisor update_cache={{ update_apt_cache }} force=yes state=installed
+  apt: name={{ item }} update_cache={{ update_apt_cache }} force=yes state=installed
   with_items:
     - supervisor
     - redis-server
+#    - nginx-full
 
 - name: install required python packages
-  pip: name={{ item }} state=latest
-  with_items:
-    - celery
-    - flower
+  pip: requirements=/usr/local/apps/growth-yield-batch/requirements.txt state=present
 
 - name: create celery worker user
   user: name=celery createhome=no system=yes state=present
@@ -93,6 +73,33 @@
 
 - name: write supervisor config file
   copy: src=supervisor_celery dest=/etc/supervisor/conf.d/celery.conf
+
+## NGINX
+## Running Flower behind a reverse proxy:
+## http://mher.github.io/flower/reverse-proxy.html?highlight=nginx
+#- name: create gybatch site
+#  copy:
+#    src=gybatch.nginx
+#    dest=/etc/nginx/sites-available/gybatch
+#
+#- name: enable gybatch site
+#  file:
+#    src=/etc/nginx/sites-available/gybatch
+#    dest=/etc/nginx/sites-enabled/gybatch
+#    state=link
+#
+#- name: remove default site
+#  file:
+#    path=/etc/nginx/sites-enabled/default
+#    state=absent
+#
+#- name: update passwords
+#  htpasswd:
+#    path=/usr/local/apps/growth-yield-batch/celeryflower-passwords
+#    name={{ flower_user }}
+#    password={{ flower_pass }}
+#    create=yes
+#    state=present
 
 - name: link scripts
   file:
