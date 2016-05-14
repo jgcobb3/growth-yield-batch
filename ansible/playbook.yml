@@ -26,10 +26,10 @@
 #      - op
 #      - pnc
 #      - soc
-      - sn
+#      - sn
 #      - ttc
 #      - utc
-#      - wcc
+      - wcc
 #      - wsc
 
     flower_user: user
