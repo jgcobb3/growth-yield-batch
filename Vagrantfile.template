@@ -7,6 +7,7 @@ Vagrant.configure("2") do |config|
   
   #config.vm.synced_folder "./", "/vagrant", disabled: true
   config.vm.synced_folder "./", "/usr/local/apps/growth-yield-batch"
+  config.vm.synced_folder "notebooks", "/srv/jupyter"
 
   # config.vm.provision :puppet do |puppet|
   #   puppet.manifests_path = "puppet/manifests"
@@ -32,10 +33,11 @@ Vagrant.configure("2") do |config|
   # end
 
   config.vm.provider :virtualbox do |virtualbox, override|
-      
+    virtualbox.memory = "2048"
     config.vm.network :forwarded_port, guest:80, host:8080
     config.vm.network :forwarded_port, guest:8000, host:8000
-    config.vm.network :forwarded_port, guest:5555, host:5555
+    config.vm.network :forwarded_port, guest:5555, host:5555  # Flower
+    config.vm.network :forwarded_port, guest:8888, host:8888  # Jupyter
 
   end
 
