@@ -1,0 +1,5 @@
+---
+- name: restart jupyter
+  supervisorctl: name={{ item }} state=restarted
+  with_items:
+    - jupyter_notebook

@@ -1,0 +1,60 @@
+---
+- name: install python packages
+  apt: name={{ item }} update_cache={{ update_apt_cache }} force=yes state=installed
+  with_items:
+   - python-pip
+   - build-essential
+   - python-dev
+   - libffi-dev
+#   - libssl-dev
+
+- name: install jupyter requirements
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=installed
+  with_items:
+    - gcc
+    - python-zmq
+    - supervisor
+
+- name: install matplotlib requirements
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=installed
+  with_items:
+    - python-matplotlib
+    - python-mpltoolkits.basemap
+    - libfreetype6-dev
+    - pkg-config
+    - libpng-dev
+
+- name: install scipy requirements
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=installed
+  with_items:
+   - python-scipy
+   - libblas-dev
+   - liblapack-dev
+   - libatlas-base-dev
+   - gfortran
+
+- name: install pandas requirements
+  apt: name={{ item }} update_cache={{ update_apt_cache }} state=installed
+  with_items:
+   - python-numpy
+   - python-pandas
+
+- name: install scientific python modules
+  pip: name={{ item }} state=latest
+  with_items:
+    - notebook
+    - ipywidgets
+    - matplotlib
+    - scipy
+    - numpy
+    - pandas
+
+- name: fix "Matplotlib is building the font cache using fc-list" warning
+  file: path=/root/.cache/matplotlib/fontList.cache state=absent
+
+- name: create supervisory config directory
+  file: path=/etc/supervisor/conf.d state=directory mode=0755
+
+- name: write supervisor config file
+  template: src=supervisor.conf dest=/etc/supervisor/conf.d/jupyter.conf
+  notify: restart jupyter
